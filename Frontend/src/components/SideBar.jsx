@@ -1,0 +1,50 @@
+import React from "react";
+import useChatStore from "../stores/UseChatStore";
+import { UsersRound } from "lucide-react";
+import useAuthStore from "../stores/UseAuthStore";
+
+const SideBar = () => {
+  const { users, setSelectedUser } = useChatStore();
+  const { onlineUsers } = useAuthStore();
+
+  return (
+    <div className="grid grid-cols-1 w-full pl-4 pr-4">
+      <p className="flex justify-start items-center text-xl font-bold gap-2 py-2">
+        <UsersRound />
+        contacts
+      </p>
+      <div className="divider"></div>
+      {users.length === 0 && <p>No users found</p>}
+      {users.map((u) => (
+        <div
+          className="flex flex-col items-start hover:bg-base-200 hover:rounded-lg cursor-pointer transition-all w-full bg-base-100  pl-4 py-2"
+          onClick={() => setSelectedUser(u)}
+          key={u._id}
+        >
+          <div className="flex items-center gap-3">
+            <div
+              className={`avatar ${onlineUsers.includes(u._id) ? "online" : "offline"}`}
+            >
+              <div className="w-10 rounded-full">
+                <img
+                  src={
+                    u.profilePicture ||
+                    `https://ui-avatars.com/api/?name=${u.fullname}&background=random`
+                  }
+                />
+              </div>
+            </div>
+            <div className="flex flex-col">
+              <p className="font-semibold">{u.fullname}</p>
+              <p className="text-sm">
+                {onlineUsers.includes(u._id) ? "online" : "offline"}
+              </p>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+export default SideBar;

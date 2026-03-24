@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Hide Edge/IE password reveal button */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}
+
+/* Hide Chrome password reveal button */
+input::-webkit-credentials-auto-fill-button {
+  display: none;
+}
