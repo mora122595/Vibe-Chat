@@ -1,12 +1,17 @@
 import useChatStore from "../stores/UseChatStore";
 import useAuthStore from "../stores/UseAuthStore";
-import { ImagePlus, Send } from "lucide-react";
+import { ImagePlus, Send, ArrowLeft } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 
 const ChatWindow = () => {
   const { authUser, onlineUsers } = useAuthStore();
-  const { selectedUser, sendMessage, chatHistory, fetchChatHistory } =
-    useChatStore();
+  const {
+    selectedUser,
+    sendMessage,
+    chatHistory,
+    fetchChatHistory,
+    setSelectedUser,
+  } = useChatStore();
   const [message, setMessage] = useState({
     text: "",
     image: "",
@@ -17,7 +22,7 @@ const ChatWindow = () => {
 
   useEffect(() => {
     messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [chatHistory]); // runs every time chatHistory updates
+  }, [chatHistory]);
 
   useEffect(() => {
     if (!selectedUser._id) return;
@@ -43,7 +48,6 @@ const ChatWindow = () => {
           let width = img.width;
           let height = img.height;
 
-          // Maintain aspect ratio
           if (width > maxSize || height > maxSize) {
             if (width > height) {
               height = (height / width) * maxSize;
@@ -62,13 +66,11 @@ const ChatWindow = () => {
 
           const compressed = canvas.toDataURL("image/jpeg", 0.7);
 
-          // ✅ Send image + existing text
           await sendMessage({
-            text: message.text, // include typed text
+            text: message.text,
             image: compressed,
           });
 
-          // ✅ Clear message after sending
           setMessage({ text: "", image: "" });
         } catch (error) {
           console.error("Image send failed:", error);
@@ -86,17 +88,19 @@ const ChatWindow = () => {
     if (!message.text.trim() && !message.image) return;
 
     setSendingMessage(true);
-
     await sendMessage(message);
-
     setSendingMessage(false);
-
     setMessage({ text: "", image: "" });
   };
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex items-center gap-3 pl-4">
+    // flex column that fills the screen on mobile, normal flow on desktop
+    <div className="fixed inset-0 flex flex-col lg:static lg:h-full lg:flex lg:flex-col">
+      {/* Header */}
+      <div className="flex items-center gap-3 pl-4 pt-6">
+        <button onClick={() => setSelectedUser(null)} className="md:hidden">
+          <ArrowLeft />
+        </button>
         <img
           src={
             selectedUser.profilePicture ||
@@ -112,9 +116,11 @@ const ChatWindow = () => {
           </p>
         </div>
       </div>
-      <div className="divider px-4"></div>
 
-      <div className="flex-1 overflow-y-auto p-4" id="scroll-container">
+      <div className="divider px-4 shrink-0"></div>
+
+      {/* Messages — takes all remaining space and scrolls */}
+      <div className="flex-1 overflow-y-auto p-4 min-h-0">
         {chatHistory.map((m) => (
           <div
             key={m._id}
@@ -157,10 +163,10 @@ const ChatWindow = () => {
         <div ref={messageEndRef} />
       </div>
 
-      <div className="flex items-center gap-2 p-2 bg-base-300 rounded-xl">
+      {/* Input bar — always pinned to bottom */}
+      <div className="flex items-center gap-2 p-2 bg-base-300 rounded-xl shrink-0">
         <label className="btn btn-neutral btn-sm btn-square cursor-pointer">
           <ImagePlus className="size-4" />
-
           <input
             type="file"
             accept="image/*"

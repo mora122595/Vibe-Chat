@@ -68,7 +68,7 @@ const SettingsPage = () => {
   return (
     <div className="flex flex-col lg:flex-row lg:h-full p-6 gap-6">
       {/* Left - themes 2/3 */}
-      <div className="flex-[2] overflow-y-auto order-1 max-h-80 lg:max-h-full">
+      <div className="flex-[2] overflow-y-auto order-1 max-h-96 lg:max-h-full">
         <h1 className="text-2xl font-bold mb-6">Theme Settings</h1>
         <p className="mb-6 text-md">Choose your favorite theme for VibeChat</p>
         <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 items-center pl-1 pr-1">
@@ -108,7 +108,10 @@ const SettingsPage = () => {
           ))}
         </div>
       </div>
-      <div className="flex-[1] order-2 border-t lg:border-t-0 lg:border-l border-base-300 pt-6 lg:pt-0 lg:pl-10 lg:pr-6">
+      <div
+        className="flex-[1] order-2 border-t lg:border-t-0 lg:border-l border-base-300 
+     pt-6 lg:pt-0 lg:pl-10 lg:pr-6 overflow-y-auto max-h-96 lg:max-h-full"
+      >
         <h1 className="text-2xl font-bold mb-6 text-center">PREVIEW</h1>
         <div>
           <div className="bg-base-200 rounded-xl p-6 w-full">

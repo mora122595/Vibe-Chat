@@ -27,6 +27,7 @@ const SideBar = () => {
             >
               <div className="w-10 rounded-full">
                 <img
+                  alt="profilepic"
                   src={
                     u.profilePicture ||
                     `https://ui-avatars.com/api/?name=${u.fullname}&background=random`

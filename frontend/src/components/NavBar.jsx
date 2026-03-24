@@ -1,13 +1,16 @@
-import React from "react";
 import { MessageCircle, Settings, CircleUser, LogOut } from "lucide-react";
 import { Link } from "react-router-dom";
 import useAuthStore from "../stores/UseAuthStore";
+import useChatStore from "../stores/UseChatStore";
 
 const NavBar = () => {
   const { authUser, logout, isLogingOut } = useAuthStore();
+  const { selectedUser } = useChatStore();
 
   return (
-    <div className="w-full shadow-md border-b border-base-300 py-4 px-6 flex items-center justify-between">
+    <div
+      className={`w-full shadow-md border-b border-base-300 py-4 px-6 flex items-center justify-between ${selectedUser ? "hidden lg:flex" : "flex"}`}
+    >
       <div>
         <Link to="/" className="flex items-center gap-2">
           <MessageCircle className="w-8 h-8 text-primary" />

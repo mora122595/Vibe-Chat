@@ -41,10 +41,10 @@ export const useChatStore = create((set, get) => ({
       set({ isLoadingChatHistory: false });
     }
   },
-  setSelectedUser: async (user) => {
+  setSelectedUser: (user) => {
+    set({ chatHistory: [], selectedUser: user });
     const { socket } = useAuthStore.getState();
     socket.off("newMessage");
-    set({ selectedUser: user });
   },
   sendMessage: async (message) => {
     const { chatHistory, selectedUser } = get();

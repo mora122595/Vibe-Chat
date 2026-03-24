@@ -31,7 +31,7 @@ export const App = () => {
   return (
     <div data-theme={theme} className="flex flex-col h-screen">
       <NavBar />
-      <main className="flex-1 overflow-auto">
+      <main className="flex-1 overflow-hidden h-full">
         <Routes>
           <Route
             path="/"

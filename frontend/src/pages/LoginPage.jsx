@@ -21,7 +21,7 @@ const LoginPage = () => {
     password: "",
   });
 
-  const { isloginIn, loginIn } = useAuthStore();
+  const { isLoginIn, loginIn } = useAuthStore();
 
   const manageLogin = async () => {
     await loginIn(user.email, user.password);
@@ -79,7 +79,7 @@ const LoginPage = () => {
               />
               <button
                 type="button"
-                disabled={isloginIn}
+                disabled={isLoginIn}
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/40 hover:text-base-content transition-colors"
               >
@@ -96,7 +96,7 @@ const LoginPage = () => {
             <button
               className="btn btn-primary w-2/3 transition-all duration-200 hover:shadow-lg hover:scale-105 hover:bg-primary hover:border-primary"
               onClick={manageLogin}
-              disabled={isloginIn}
+              disabled={isLoginIn}
             >
               Log In
             </button>
