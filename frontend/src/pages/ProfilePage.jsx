@@ -132,7 +132,11 @@ const ProfilePage = () => {
               <button
                 className="btn w-full btn-primary"
                 onClick={() =>
-                  updateProfile(updateUser.fullname, updateUser.profilePicture)
+                  updateProfile(
+                    updateUser.fullname,
+                    updateUser.email,
+                    updateUser.profilePicture,
+                  )
                 }
                 disabled={isUpdatingProfile}
               >
