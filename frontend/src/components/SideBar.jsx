@@ -4,12 +4,12 @@ import { UsersRound } from "lucide-react";
 import useAuthStore from "../stores/UseAuthStore";
 
 const SideBar = () => {
-  const { users, setSelectedUser } = useChatStore();
+  const { users, setSelectedUser, unreadMessages } = useChatStore();
   const { onlineUsers } = useAuthStore();
 
   return (
-    <div className="grid grid-cols-1 w-full pl-4 pr-4">
-      <p className="flex justify-start items-center text-xl font-bold gap-2 py-2">
+    <div className="flex flex-col items-center justify-between w-full pl-4 pr-4">
+      <p className="flex items-center text-xl font-bold gap-2 py-2">
         <UsersRound />
         contacts
       </p>
@@ -17,7 +17,7 @@ const SideBar = () => {
       {users.length === 0 && <p>No users found</p>}
       {users.map((u) => (
         <div
-          className="flex flex-col items-start hover:bg-base-200 hover:rounded-lg cursor-pointer transition-all w-full bg-base-100  pl-4 py-2"
+          className="flex flex-row items-center justify-between hover:bg-base-200 hover:rounded-lg cursor-pointer transition-all w-full bg-base-100  pl-4 py-2"
           onClick={() => setSelectedUser(u)}
           key={u._id}
         >
@@ -42,6 +42,11 @@ const SideBar = () => {
               </p>
             </div>
           </div>
+          {unreadMessages[u._id] > 0 && (
+            <div className="pr-4">
+              <div className="badge badge-primary">{unreadMessages[u._id]}</div>
+            </div>
+          )}
         </div>
       ))}
     </div>

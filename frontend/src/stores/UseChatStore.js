@@ -1,11 +1,11 @@
 import { create } from "zustand";
 import axiosInstance from "../lib/axios.js";
-import { useAuthStore } from "./UseAuthStore.js";
 
 export const useChatStore = create((set, get) => ({
   users: [],
   selectedUser: null,
   chatHistory: [],
+  unreadMessages: {},
   isLoadingChatHistory: false,
   isFetchingUsers: false,
   fetchUsers: async () => {
@@ -21,7 +21,6 @@ export const useChatStore = create((set, get) => ({
     }
   },
   fetchChatHistory: async () => {
-    const { socket } = useAuthStore.getState();
     set({ isLoadingChatHistory: true });
     const { selectedUser } = get();
     try {
@@ -29,12 +28,6 @@ export const useChatStore = create((set, get) => ({
         `message/conversation/${selectedUser._id}`,
       );
       set({ chatHistory: res.data });
-      if (socket.connected) {
-        socket.off("newMessage");
-        socket.on("newMessage", (message) => {
-          set({ chatHistory: [...get().chatHistory, message] });
-        });
-      }
     } catch (error) {
       console.error("Error in fetchChatHistory: ", error.message);
     } finally {
@@ -42,9 +35,12 @@ export const useChatStore = create((set, get) => ({
     }
   },
   setSelectedUser: (user) => {
+    if (!user) {
+      set({ chatHistory: [], selectedUser: null });
+      return;
+    }
+    get().resetUnreadMessages(user._id);
     set({ chatHistory: [], selectedUser: user });
-    const { socket } = useAuthStore.getState();
-    socket.off("newMessage");
   },
   sendMessage: async (message) => {
     const { chatHistory, selectedUser } = get();
@@ -58,6 +54,18 @@ export const useChatStore = create((set, get) => ({
     } catch (error) {
       console.error("Error in sendMessage: ", error.message);
     }
+  },
+  incrementUnreadMessages: (receiverId) => {
+    if (receiverId === get().selectedUser?._id) return;
+    set({
+      unreadMessages: {
+        ...get().unreadMessages,
+        [receiverId]: (get().unreadMessages[receiverId] || 0) + 1,
+      },
+    });
+  },
+  resetUnreadMessages: (receiverId) => {
+    set({ unreadMessages: { ...get().unreadMessages, [receiverId]: 0 } });
   },
 }));
 

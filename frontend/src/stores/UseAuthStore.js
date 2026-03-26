@@ -2,6 +2,7 @@ import axiosInstance from "../lib/axios.js";
 import { create } from "zustand";
 import { toast } from "react-hot-toast";
 import { io } from "socket.io-client";
+import useChatStore from "./UseChatStore.js";
 
 const BASE_URL =
   import.meta.env.MODE === "development" ? "http://localhost:5001" : "/";
@@ -116,6 +117,14 @@ export const useAuthStore = create((set, get) => ({
 
     socket.on("onlineUsers", (users) => {
       set({ onlineUsers: users });
+    });
+    socket.on("newMessage", (message) => {
+      const { incrementUnreadMessages, selectedUser, chatHistory } =
+        useChatStore.getState();
+      if (message.senderId === selectedUser?._id) {
+        useChatStore.setState({ chatHistory: [...chatHistory, message] });
+      }
+      incrementUnreadMessages(message.senderId);
     });
   },
 
