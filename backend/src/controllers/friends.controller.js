@@ -1,0 +1,138 @@
+import User from "../models/user.model.js";
+
+export const getFriends = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).populate(
+      "friends",
+      "-password",
+    );
+    return res.status(200).json(user.friends);
+  } catch (error) {
+    console.log("Error in getFriends: ", error.message);
+    return res.status(500).json({ error: "Error fetching friends" });
+  }
+};
+
+export const getFriendRequests = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).populate(
+      "friendRequests",
+      "-password",
+    );
+    return res.status(200).json(user.friendRequests);
+  } catch (error) {
+    console.log("Error in getFriendRequests ", error.message);
+    return res.status(500).json({ error: "Error fetching friend requests" });
+  }
+};
+
+export const sendFriendRequest = async (req, res) => {
+  try {
+    const sender = req.user;
+    const receiver = await User.findById(req.params.id).select(
+      "friendRequests friends",
+    );
+
+    if (sender._id.equals(receiver._id)) {
+      return res
+        .status(400)
+        .json({ error: "You cannot send a friend request to yourself" });
+    }
+    if (sender.friends.some((id) => id.equals(receiver._id))) {
+      return res
+        .status(409)
+        .json({ error: "You are already friends with this user" });
+    }
+    if (receiver.friendRequests.some((id) => id.equals(sender._id))) {
+      return res
+        .status(409)
+        .json({ error: "You have already sent a friend request to this user" });
+    }
+
+    await User.findByIdAndUpdate(
+      receiver._id,
+      { $push: { friendRequests: sender._id } },
+      { new: true },
+    );
+    return res
+      .status(200)
+      .json({ message: "Friend request sent successfully" });
+  } catch (error) {
+    console.log("Error in sendFriendRequest: ", error.message);
+    return res.status(500).json({ error: "Error sending friend request" });
+  }
+};
+
+export const acceptFriendRequest = async (req, res) => {
+  const senderId = req.params.id;
+  const receiverId = req.user._id;
+  try {
+    if (!req.user.friendRequests.some((id) => id.equals(senderId))) {
+      return res.status(404).json({ error: "No friend request from user" });
+    }
+    await User.findByIdAndUpdate(
+      receiverId,
+      { $push: { friends: senderId }, $pull: { friendRequests: senderId } },
+      { new: true },
+    );
+
+    await User.findByIdAndUpdate(
+      senderId,
+      { $push: { friends: receiverId } },
+      { new: true },
+    );
+
+    return res
+      .status(200)
+      .json({ message: "friend added succesfully!", friendId: senderId });
+  } catch (error) {
+    console.log("Error in acceptingRequest", error.message);
+    return res.status(500).json({ error: "Error accepting request" });
+  }
+};
+
+export const declineFriendRequest = async (req, res) => {
+  const senderId = req.params.id;
+  const receiverId = req.user._id;
+  try {
+    if (!req.user.friendRequests.some((id) => id.equals(senderId))) {
+      return res.status(404).json({ error: "No friend request from user" });
+    }
+    await User.findByIdAndUpdate(
+      receiverId,
+      { $pull: { friendRequests: senderId } },
+      { new: true },
+    );
+    return res
+      .status(200)
+      .json({ message: "Friend request declined successfully" });
+  } catch (error) {
+    console.log("Error in declineFriendRequest: ", error.message);
+    return res.status(500).json({ error: "Error declining request" });
+  }
+};
+
+export const removeFriend = async (req, res) => {
+  try {
+    const friendId = req.params.id;
+    if (!req.user.friends.some((id) => id.equals(friendId))) {
+      return res.status(404).json({ error: "No friend Found" });
+    }
+    await User.findByIdAndUpdate(
+      req.user._id,
+      { $pull: { friends: friendId } },
+      { new: true },
+    );
+
+    await User.findByIdAndUpdate(
+      friendId,
+      { $pull: { friends: req.user._id } },
+      { new: true },
+    );
+
+    return res.status(200).json({ message: "Friend removed successfully" });
+  } catch (error) {
+    console.log("Error in removeFriend", error.message);
+    return res.status(500).json({ error: "Error removing friend from list" });
+  }
+};

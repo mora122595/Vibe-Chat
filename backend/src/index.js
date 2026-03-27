@@ -9,6 +9,7 @@ import messageRoutes from "./routes/message.route.js";
 import cors from "cors";
 import { app, server } from "./lib/socket.js";
 import path from "path";
+import friendsRoutes from "./routes/friends.route.js";
 
 app.use(express.json());
 app.use(cookieParser());
@@ -19,6 +20,7 @@ const __dirname = path.resolve();
 
 app.use("/api/auth", authRoutes);
 app.use("/api/message", messageRoutes);
+app.use("/api/friends", friendsRoutes);
 
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../frontend/dist")));
