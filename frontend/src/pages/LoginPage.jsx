@@ -29,15 +29,12 @@ const LoginPage = () => {
 
   return (
     <div className="flex h-full items-center justify-center">
-      {/* Left side */}
       <div className="flex flex-1 flex-col items-center justify-center h-full px-8">
-        {/* Logo */}
         <div className="flex flex-row items-center justify-center gap-2 mb-4">
           <MessageCircle className="size-8 text-primary" />
           <p className="font-bold text-base">VibeChat</p>
         </div>
 
-        {/* Header */}
         <div className="mb-4 flex items-center flex-col justify-center">
           <h1 className="text-3xl font-bold">Welcome Back!</h1>
           <p className="text-base text-base-content/60 mt-1">
@@ -45,7 +42,6 @@ const LoginPage = () => {
           </p>
         </div>
 
-        {/* Form */}
         <div className="w-full max-w-sm space-y-3">
           <div className="form-control">
             <label className="label py-1">
@@ -111,7 +107,6 @@ const LoginPage = () => {
         </div>
       </div>
 
-      {/* Right side */}
       <div className="hidden lg:flex flex-1 flex-col items-center justify-center bg-base-200 h-full gap-6">
         <div className="text-center text-sm mb-4">
           <p className="text text-3xl font-bold">Nice to See You Again!</p>

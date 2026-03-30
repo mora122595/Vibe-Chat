@@ -3,6 +3,7 @@ import { create } from "zustand";
 import { toast } from "react-hot-toast";
 import { io } from "socket.io-client";
 import useChatStore from "./UseChatStore.js";
+import useFriendsStore from "./UseFriendsStore.js";
 
 const BASE_URL =
   import.meta.env.MODE === "development" ? "http://localhost:5001" : "/";
@@ -118,6 +119,7 @@ export const useAuthStore = create((set, get) => ({
     socket.on("onlineUsers", (users) => {
       set({ onlineUsers: users });
     });
+
     socket.on("newMessage", (message) => {
       const { incrementUnreadMessages, selectedUser, chatHistory } =
         useChatStore.getState();
@@ -126,11 +128,20 @@ export const useAuthStore = create((set, get) => ({
       }
       incrementUnreadMessages(message.senderId);
     });
+
+    socket.on("newRequest", (request) => {
+      const { friendRequests } = useFriendsStore.getState();
+      useFriendsStore.setState({
+        friendRequests: [...friendRequests, request],
+      });
+      toast.success(`New friend request from ${request.fullname}`);
+    });
   },
 
   disconnectSocket: () => {
     if (get().socket?.connected) {
-      get().socket?.disconnect();
+      get().socket.disconnect();
+      set({ socket: null });
     }
   },
 }));

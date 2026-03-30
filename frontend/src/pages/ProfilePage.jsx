@@ -65,6 +65,7 @@ const ProfilePage = () => {
           </div>
           <div className="form-control">
             <label className="label  py-1"></label>
+
             <div className="relative flex items-center justify-center">
               <input
                 type="file"

@@ -19,6 +19,7 @@ const ChatWindow = () => {
   const [sendingMessage, setSendingMessage] = useState(false);
 
   const messageEndRef = useRef(null);
+  const inputRef = useRef(null);
 
   useEffect(() => {
     messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -27,6 +28,8 @@ const ChatWindow = () => {
   useEffect(() => {
     if (!selectedUser._id) return;
     fetchChatHistory();
+    // Auto-focus input when chat opens
+    inputRef.current?.focus();
   }, [selectedUser._id, fetchChatHistory]);
 
   const handleImage = (e) => {
@@ -89,15 +92,17 @@ const ChatWindow = () => {
 
     setSendingMessage(true);
     await sendMessage(message);
-    setSendingMessage(false);
     setMessage({ text: "", image: "" });
+    setSendingMessage(false);
+
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 0);
   };
 
   return (
-    // flex column that fills the screen on mobile, normal flow on desktop
-    <div className="fixed inset-0 flex flex-col lg:static lg:h-full lg:flex lg:flex-col">
-      {/* Header */}
-      <div className="flex items-center gap-3 pl-4 pt-6">
+    <div className="fixed inset-0 flex flex-col lg:static lg:h-full lg:flex lg:flex-col ">
+      <div className="flex items-center gap-3 pl-4 py-4  border-base-300 border-shadow-xl bg-base-300 rounded-t-xl">
         <button onClick={() => setSelectedUser(null)} className="md:hidden">
           <ArrowLeft />
         </button>
@@ -117,54 +122,61 @@ const ChatWindow = () => {
         </div>
       </div>
 
-      <div className="divider px-4 shrink-0"></div>
+      <div
+        className="flex-1 overflow-y-auto p-4 min-h-0 bg-repeat relative"
+        style={{
+          backgroundImage:
+            "url(https://res.cloudinary.com/du5jeewxn/image/upload/v1774679183/cats_lvvcjj.jpg)",
+          backgroundSize: "300px",
+        }}
+      >
+        <div className="absolute inset-0 bg-base-100/40"></div>
 
-      {/* Messages — takes all remaining space and scrolls */}
-      <div className="flex-1 overflow-y-auto p-4 min-h-0">
-        {chatHistory.map((m) => (
-          <div
-            key={m._id}
-            className={`chat ${m.senderId === authUser._id ? "chat-end" : "chat-start"}`}
-          >
-            <div className="chat-image avatar">
-              <div className="w-10 rounded-full">
-                <img
-                  alt="avatar"
-                  src={
-                    m.senderId === authUser._id
-                      ? authUser.profilePicture ||
-                        `https://ui-avatars.com/api/?name=${authUser.fullname}&background=random`
-                      : selectedUser.profilePicture ||
-                        `https://ui-avatars.com/api/?name=${selectedUser.fullname}&background=random`
-                  }
-                />
+        <div className="relative h-full overflow-y-auto p-4">
+          {chatHistory.map((m) => (
+            <div
+              key={m._id}
+              className={`chat ${m.senderId === authUser._id ? "chat-end" : "chat-start"}`}
+            >
+              <div className="chat-image avatar">
+                <div className="w-10 rounded-full">
+                  <img
+                    alt="avatar"
+                    src={
+                      m.senderId === authUser._id
+                        ? authUser.profilePicture ||
+                          `https://ui-avatars.com/api/?name=${authUser.fullname}&background=random`
+                        : selectedUser.profilePicture ||
+                          `https://ui-avatars.com/api/?name=${selectedUser.fullname}&background=random`
+                    }
+                  />
+                </div>
               </div>
+              <div className="chat-bubble rounded-2xl">
+                {m.image && (
+                  <img
+                    src={m.image}
+                    alt="attachment"
+                    className="max-w-xs rounded-lg mt-1 cursor-pointer pb-1"
+                    onClick={() => window.open(m.image, "_blank")}
+                  />
+                )}
+                {m.text && <p>{m.text}</p>}
+              </div>
+              <p className="chat-footer font-semibold text-xs">
+                {new Date(m.createdAt).toLocaleString("en-US", {
+                  hour: "numeric",
+                  minute: "numeric",
+                  hour12: true,
+                })}
+              </p>
             </div>
-            <div className="chat-bubble">
-              {m.image && (
-                <img
-                  src={m.image}
-                  alt="attachment"
-                  className="max-w-xs rounded-lg mt-1 cursor-pointer pb-1"
-                  onClick={() => window.open(m.image, "_blank")}
-                />
-              )}
-              {m.text && <p>{m.text}</p>}
-            </div>
-            <p className="chat-footer text-xs opacity-50">
-              {new Date(m.createdAt).toLocaleString("en-US", {
-                hour: "numeric",
-                minute: "numeric",
-                hour12: true,
-              })}
-            </p>
-          </div>
-        ))}
+          ))}
+        </div>
         <div ref={messageEndRef} />
       </div>
 
-      {/* Input bar — always pinned to bottom */}
-      <div className="flex items-center gap-2 p-2 bg-base-300 rounded-xl shrink-0">
+      <div className="flex items-center gap-2 p-4 bg-base-300 rounded-b-xl shrink-0">
         <label className="btn btn-neutral btn-sm btn-square cursor-pointer">
           <ImagePlus className="size-4" />
           <input
@@ -177,6 +189,7 @@ const ChatWindow = () => {
           />
         </label>
         <input
+          ref={inputRef}
           type="text"
           placeholder="Type a message..."
           className="input input-bordered w-full input-sm"

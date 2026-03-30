@@ -7,20 +7,26 @@ import {
   acceptFriendRequest,
   declineFriendRequest,
   removeFriend,
+  getPendingRequests,
+  removeRequest,
 } from "../controllers/friends.controller.js";
 
 const router = express.Router();
 
 router.get("/list", protectRoute, getFriends);
 
-router.get("/req-list", protectRoute, getFriendRequests);
+router.get("/requests", protectRoute, getFriendRequests);
 
 router.post("/request/:id", protectRoute, sendFriendRequest);
 
-router.post("/decline/:id", protectRoute, declineFriendRequest);
+router.patch("/decline/:id", protectRoute, declineFriendRequest);
 
-router.post("/accept/:id", protectRoute, acceptFriendRequest);
+router.patch("/accept/:id", protectRoute, acceptFriendRequest);
 
 router.delete("/unfriend/:id", protectRoute, removeFriend);
+
+router.get("/pending-requests", protectRoute, getPendingRequests);
+
+router.delete("/remove-request/:id", protectRoute, removeRequest);
 
 export default router;

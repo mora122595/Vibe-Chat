@@ -6,7 +6,7 @@ export const getFriends = async (req, res) => {
       "friends",
       "-password",
     );
-    return res.status(200).json(user.friends);
+    return res.status(200).json({ friends: user.friends });
   } catch (error) {
     console.log("Error in getFriends: ", error.message);
     return res.status(500).json({ error: "Error fetching friends" });
@@ -19,10 +19,23 @@ export const getFriendRequests = async (req, res) => {
       "friendRequests",
       "-password",
     );
-    return res.status(200).json(user.friendRequests);
+    return res.status(200).json({ friendRequests: user.friendRequests });
   } catch (error) {
     console.log("Error in getFriendRequests ", error.message);
     return res.status(500).json({ error: "Error fetching friend requests" });
+  }
+};
+
+export const getPendingRequests = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).populate(
+      "pendingRequests",
+      "-password",
+    );
+    return res.status(200).json({ pendingRequests: user.pendingRequests });
+  } catch (error) {
+    console.log("Error in getPendingRequests: ", error.message);
+    return res.status(500).json({ error: "Error fetching pending requests" });
   }
 };
 
@@ -32,6 +45,10 @@ export const sendFriendRequest = async (req, res) => {
     const receiver = await User.findById(req.params.id).select(
       "friendRequests friends",
     );
+
+    if (!receiver) {
+      return res.status(404).json({ error: "User not found" });
+    }
 
     if (sender._id.equals(receiver._id)) {
       return res
@@ -51,9 +68,27 @@ export const sendFriendRequest = async (req, res) => {
 
     await User.findByIdAndUpdate(
       receiver._id,
-      { $push: { friendRequests: sender._id } },
+      { $addToSet: { friendRequests: sender._id } },
       { new: true },
     );
+    await User.findByIdAndUpdate(
+      sender._id,
+      { $addToSet: { pendingRequests: receiver._id } },
+      { new: true },
+    );
+
+    // Emit socket event to notify receiver
+    const { io, getSocket } = await import("../lib/socket.js");
+    const receiverSocketId = getSocket(receiver._id.toString());
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("newRequest", {
+        _id: sender._id,
+        fullname: sender.fullname,
+        email: sender.email,
+        profilePic: sender.profilePicture,
+      });
+    }
+
     return res
       .status(200)
       .json({ message: "Friend request sent successfully" });
@@ -72,13 +107,22 @@ export const acceptFriendRequest = async (req, res) => {
     }
     await User.findByIdAndUpdate(
       receiverId,
-      { $push: { friends: senderId }, $pull: { friendRequests: senderId } },
+      { $addToSet: { friends: senderId }, $pull: { friendRequests: senderId } },
+      { new: true },
+    );
+
+    await User.findByIdAndUpdate(
+      receiverId,
+      { $pull: { pendingRequests: senderId } },
       { new: true },
     );
 
     await User.findByIdAndUpdate(
       senderId,
-      { $push: { friends: receiverId } },
+      {
+        $addToSet: { friends: receiverId },
+        $pull: { pendingRequests: receiverId },
+      },
       { new: true },
     );
 
@@ -101,6 +145,12 @@ export const declineFriendRequest = async (req, res) => {
     await User.findByIdAndUpdate(
       receiverId,
       { $pull: { friendRequests: senderId } },
+      { new: true },
+    );
+
+    await User.findByIdAndUpdate(
+      senderId,
+      { $pull: { pendingRequests: receiverId } },
       { new: true },
     );
     return res
@@ -131,6 +181,32 @@ export const removeFriend = async (req, res) => {
     );
 
     return res.status(200).json({ message: "Friend removed successfully" });
+  } catch (error) {
+    console.log("Error in removeFriend", error.message);
+    return res.status(500).json({ error: "Error removing friend from list" });
+  }
+};
+
+export const removeRequest = async (req, res) => {
+  try {
+    const friendId = req.params.id;
+    if (!req.user.pendingRequests.some((id) => id.equals(friendId))) {
+      return res.status(404).json({ error: "No friend Request Found" });
+    }
+    await User.findByIdAndUpdate(
+      req.user._id,
+      { $pull: { pendingRequests: friendId } },
+      { new: true },
+    );
+
+    await User.findByIdAndUpdate(
+      friendId,
+      { $pull: { friendRequests: req.user._id } },
+      { new: true },
+    );
+    return res
+      .status(200)
+      .json({ message: "Friend request removed successfully" });
   } catch (error) {
     console.log("Error in removeFriend", error.message);
     return res.status(500).json({ error: "Error removing friend from list" });

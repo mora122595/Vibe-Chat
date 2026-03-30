@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import NavBar from "./components/NavBar";
 import { Routes, Route, Navigate } from "react-router-dom";
 import HomePage from "./pages/HomePage";
@@ -6,8 +6,9 @@ import SignUpPage from "./pages/SignUpPage";
 import LoginPage from "./pages/LoginPage";
 import ProfilePage from "./pages/ProfilePage";
 import SettingsPage from "./pages/SettingsPage";
+import UsersPage from "./pages/UsersPage";
 import useAuthStore from "./stores/UseAuthStore";
-import { Loader2 } from "lucide-react";
+import { Loader2, User } from "lucide-react";
 import { Toaster } from "react-hot-toast";
 import useThemeStore from "./stores/UseThemeStore.js";
 
@@ -31,7 +32,7 @@ export const App = () => {
   return (
     <div data-theme={theme} className="flex flex-col h-screen">
       <NavBar />
-      <main className="flex-1 overflow-hidden h-full">
+      <main className="flex-1 overflow-auto">
         <Routes>
           <Route
             path="/"
@@ -48,6 +49,10 @@ export const App = () => {
           <Route
             path="/profile"
             element={authUser ? <ProfilePage /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/users"
+            element={authUser ? <UsersPage /> : <Navigate to="/login" />}
           />
           <Route path="/settings" element={<SettingsPage />} />
         </Routes>
