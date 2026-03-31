@@ -121,21 +121,22 @@ export const useAuthStore = create((set, get) => ({
     });
 
     socket.on("newMessage", (message) => {
-      const { selectedUser } = useChatStore.getState();
+      const { incrementUnreadMessages, selectedUser, users } =
+        useChatStore.getState();
 
-      // Logic to check if the message belongs to the current open chat
       const isMessageForSelectedChat =
         message.senderId === selectedUser?._id ||
         message.receiverId === selectedUser?._id;
 
       if (isMessageForSelectedChat) {
-        // Ensure you use the functional update here as well
         useChatStore.setState((state) => ({
           chatHistory: [...state.chatHistory, message],
         }));
+      } else {
+        const sender = users.find((u) => u._id === message.senderId);
+        if (sender) toast.success(`New message from ${sender.fullname}`);
+        incrementUnreadMessages(message.senderId); // ← only for non-active chats
       }
-
-      incrementUnreadMessages(message.senderId);
     });
 
     socket.on("typing", (userId) => {
