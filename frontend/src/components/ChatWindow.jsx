@@ -123,9 +123,7 @@ const ChatWindow = () => {
       <div
         className="flex-1 overflow-y-auto p-4 min-h-0 bg-repeat relative"
         style={{
-          backgroundImage: {
-            bgImage,
-          },
+          backgroundImage: bgImage,
           backgroundSize: "300px",
         }}
       >
