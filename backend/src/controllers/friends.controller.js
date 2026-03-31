@@ -1,4 +1,5 @@
 import User from "../models/user.model.js";
+import { io, getSocket } from "../lib/socket.js";
 
 export const getFriends = async (req, res) => {
   try {
@@ -77,8 +78,6 @@ export const sendFriendRequest = async (req, res) => {
       { new: true },
     );
 
-    // Emit socket event to notify receiver
-    const { io, getSocket } = await import("../lib/socket.js");
     const receiverSocketId = getSocket(receiver._id.toString());
     if (receiverSocketId) {
       io.to(receiverSocketId).emit("newRequest", {

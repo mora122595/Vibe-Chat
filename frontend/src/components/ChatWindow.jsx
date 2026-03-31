@@ -2,35 +2,50 @@ import useChatStore from "../stores/UseChatStore";
 import useAuthStore from "../stores/UseAuthStore";
 import { ImagePlus, Send, ArrowLeft } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
+import { getAvatar } from "../lib/helpers";
+import ChatMessage from "./ChatMessage";
 
 const ChatWindow = () => {
-  const { authUser, onlineUsers } = useAuthStore();
+  const { onlineUsers, socket, authUser } = useAuthStore();
   const {
     selectedUser,
     sendMessage,
     chatHistory,
     fetchChatHistory,
     setSelectedUser,
+    isTyping,
   } = useChatStore();
+
   const [message, setMessage] = useState({
     text: "",
     image: "",
   });
   const [sendingMessage, setSendingMessage] = useState(false);
-
+  const typingTimeoutRef = useRef(null);
   const messageEndRef = useRef(null);
   const inputRef = useRef(null);
 
+  const bgImage =
+    "url(https://res.cloudinary.com/du5jeewxn/image/upload/v1774679183/cats_lvvcjj.jpg)";
+
   useEffect(() => {
     messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [chatHistory]);
+  }, [chatHistory, isTyping]);
+
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     if (!selectedUser._id) return;
     fetchChatHistory();
     // Auto-focus input when chat opens
-    inputRef.current?.focus();
-  }, [selectedUser._id, fetchChatHistory]);
+    requestAnimationFrame(() => {
+      inputRef.current?.focus();
+    });
+  }, [selectedUser._id]);
 
   const handleImage = (e) => {
     const file = e.target.files[0];
@@ -38,50 +53,20 @@ const ChatWindow = () => {
 
     const reader = new FileReader();
 
-    reader.onload = () => {
-      const img = new Image();
-      img.src = reader.result;
-
-      img.onload = async () => {
-        try {
-          setSendingMessage(true);
-          const canvas = document.createElement("canvas");
-          const maxSize = 200;
-
-          let width = img.width;
-          let height = img.height;
-
-          if (width > maxSize || height > maxSize) {
-            if (width > height) {
-              height = (height / width) * maxSize;
-              width = maxSize;
-            } else {
-              width = (width / height) * maxSize;
-              height = maxSize;
-            }
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-
-          const ctx = canvas.getContext("2d");
-          ctx.drawImage(img, 0, 0, width, height);
-
-          const compressed = canvas.toDataURL("image/jpeg", 0.7);
-
-          await sendMessage({
-            text: message.text,
-            image: compressed,
-          });
-
-          setMessage({ text: "", image: "" });
-        } catch (error) {
-          console.error("Image send failed:", error);
-        } finally {
-          e.target.value = null;
-          setSendingMessage(false);
-        }
-      };
+    reader.onload = async () => {
+      try {
+        setSendingMessage(true);
+        await sendMessage({
+          text: message.text,
+          image: reader.result,
+        });
+        setMessage({ text: "", image: "" });
+      } catch (error) {
+        console.error("Image send failed:", error);
+      } finally {
+        e.target.value = null;
+        setSendingMessage(false);
+      }
     };
 
     reader.readAsDataURL(file);
@@ -94,23 +79,36 @@ const ChatWindow = () => {
     await sendMessage(message);
     setMessage({ text: "", image: "" });
     setSendingMessage(false);
-
-    setTimeout(() => {
+    requestAnimationFrame(() => {
       inputRef.current?.focus();
-    }, 0);
+    });
+  };
+
+  const handleTyping = () => {
+    if (!socket || !selectedUser?._id) return;
+
+    // Emit typing immediately
+    socket.emit("typing", selectedUser._id);
+
+    // Reset timer
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    // Emit stopTyping after delay
+    typingTimeoutRef.current = setTimeout(() => {
+      socket.emit("stopTyping", selectedUser._id);
+    }, 1500);
   };
 
   return (
-    <div className="fixed inset-0 flex flex-col lg:static lg:h-full lg:flex lg:flex-col ">
+    <div className="fixed inset-0 flex flex-col lg:static lg:h-full lg:flex lg:flex-col overflow-x-hidden">
       <div className="flex items-center gap-3 pl-4 py-4  border-base-300 border-shadow-xl bg-base-300 rounded-t-xl">
         <button onClick={() => setSelectedUser(null)} className="md:hidden">
           <ArrowLeft />
         </button>
         <img
-          src={
-            selectedUser.profilePicture ||
-            `https://ui-avatars.com/api/?name=${selectedUser.fullname}&background=random`
-          }
+          src={getAvatar(selectedUser)}
           className="w-10 h-10 rounded-full object-cover"
           alt="avatar"
         />
@@ -125,55 +123,38 @@ const ChatWindow = () => {
       <div
         className="flex-1 overflow-y-auto p-4 min-h-0 bg-repeat relative"
         style={{
-          backgroundImage:
-            "url(https://res.cloudinary.com/du5jeewxn/image/upload/v1774679183/cats_lvvcjj.jpg)",
+          backgroundImage: {
+            bgImage,
+          },
           backgroundSize: "300px",
         }}
       >
         <div className="absolute inset-0 bg-base-100/40"></div>
 
-        <div className="relative h-full overflow-y-auto p-4">
+        <div className="relative h-full p-4 overflow-y-auto">
           {chatHistory.map((m) => (
-            <div
-              key={m._id}
-              className={`chat ${m.senderId === authUser._id ? "chat-end" : "chat-start"}`}
-            >
-              <div className="chat-image avatar">
-                <div className="w-10 rounded-full">
-                  <img
-                    alt="avatar"
-                    src={
-                      m.senderId === authUser._id
-                        ? authUser.profilePicture ||
-                          `https://ui-avatars.com/api/?name=${authUser.fullname}&background=random`
-                        : selectedUser.profilePicture ||
-                          `https://ui-avatars.com/api/?name=${selectedUser.fullname}&background=random`
-                    }
-                  />
-                </div>
-              </div>
-              <div className="chat-bubble rounded-2xl">
-                {m.image && (
-                  <img
-                    src={m.image}
-                    alt="attachment"
-                    className="max-w-xs rounded-lg mt-1 cursor-pointer pb-1"
-                    onClick={() => window.open(m.image, "_blank")}
-                  />
-                )}
-                {m.text && <p>{m.text}</p>}
-              </div>
-              <p className="chat-footer font-semibold text-xs">
-                {new Date(m.createdAt).toLocaleString("en-US", {
-                  hour: "numeric",
-                  minute: "numeric",
-                  hour12: true,
-                })}
-              </p>
+            <div key={m._id}>
+              <ChatMessage
+                m={m}
+                authUser={authUser}
+                selectedUser={selectedUser}
+              />
             </div>
           ))}
+          {isTyping && (
+            <div className="chat chat-start">
+              <div className="chat-image avatar">
+                <div className="w-10 rounded-full">
+                  <img alt="avatar" src={getAvatar(selectedUser)} />
+                </div>
+              </div>
+              <div className="chat-bubble bg-base-300">
+                <span className="loading loading-dots loading-sm"></span>
+              </div>
+            </div>
+          )}
+          <div ref={messageEndRef} />
         </div>
-        <div ref={messageEndRef} />
       </div>
 
       <div className="flex items-center gap-2 p-4 bg-base-300 rounded-b-xl shrink-0">
@@ -194,7 +175,10 @@ const ChatWindow = () => {
           placeholder="Type a message..."
           className="input input-bordered w-full input-sm"
           value={message.text}
-          onChange={(e) => setMessage({ ...message, text: e.target.value })}
+          onChange={(e) => {
+            setMessage((prev) => ({ ...prev, text: e.target.value }));
+            handleTyping();
+          }}
           onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
           disabled={sendingMessage}
         />

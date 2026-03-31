@@ -102,7 +102,19 @@ export const updateProfile = async (req, res) => {
     if (fullname) updateData.fullname = fullname;
 
     if (profilePicture) {
-      const uploadResult = await cloudinary.uploader.upload(profilePicture);
+      const uploadResult = await cloudinary.uploader.upload(profilePicture, {
+        transformation: [
+          {
+            width: 500,
+            height: 500,
+            crop: "fill",
+            quality: 80,
+          },
+          {
+            format: "webp",
+          },
+        ],
+      });
       updateData.profilePicture = uploadResult.secure_url;
     }
 

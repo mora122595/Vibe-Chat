@@ -87,7 +87,7 @@ export const useAuthStore = create((set, get) => ({
       set({ isLoginOut: false });
     }
   },
-  updateProfile: async (fullname, email, profilePicture) => {
+  updateProfile: async (fullname, profilePicture) => {
     set({ isUpdatingProfile: true });
     try {
       const res = await axiosInstance.put("/auth/update-profile", {
@@ -121,12 +121,38 @@ export const useAuthStore = create((set, get) => ({
     });
 
     socket.on("newMessage", (message) => {
-      const { incrementUnreadMessages, selectedUser, chatHistory } =
-        useChatStore.getState();
-      if (message.senderId === selectedUser?._id) {
-        useChatStore.setState({ chatHistory: [...chatHistory, message] });
+      const { selectedUser } = useChatStore.getState();
+
+      // Logic to check if the message belongs to the current open chat
+      const isMessageForSelectedChat =
+        message.senderId === selectedUser?._id ||
+        message.receiverId === selectedUser?._id;
+
+      if (isMessageForSelectedChat) {
+        // Ensure you use the functional update here as well
+        useChatStore.setState((state) => ({
+          chatHistory: [...state.chatHistory, message],
+        }));
       }
+
       incrementUnreadMessages(message.senderId);
+    });
+
+    socket.on("typing", (userId) => {
+      const { selectedUser } = useChatStore.getState();
+      console.log("   Current selectedUser:", selectedUser?._id);
+      if (userId === selectedUser?._id) {
+        useChatStore.setState({ isTyping: true });
+      }
+    });
+
+    socket.on("stopTyping", (userId) => {
+      const { selectedUser } = useChatStore.getState();
+      console.log("   Current selectedUser:", selectedUser?._id);
+      if (userId === selectedUser?._id) {
+        console.log("   ✅ Setting isTyping = false");
+        useChatStore.setState({ isTyping: false });
+      }
     });
 
     socket.on("newRequest", (request) => {

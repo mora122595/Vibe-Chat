@@ -21,34 +21,7 @@ const ProfilePage = () => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
     reader.onload = () => {
-      const img = new Image();
-      img.src = reader.result;
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        const maxSize = 500; // max width/height in pixels
-        let width = img.width;
-        let height = img.height;
-
-        // scale down if too large
-        if (width > maxSize || height > maxSize) {
-          if (width > height) {
-            height = (height / width) * maxSize;
-            width = maxSize;
-          } else {
-            width = (width / height) * maxSize;
-            height = maxSize;
-          }
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, width, height);
-
-        // convert to base64 with compression (0.7 = 70% quality)
-        const compressed = canvas.toDataURL("image/jpeg", 0.7);
-        setUpdateUser({ ...updateUser, profilePicture: compressed });
-      };
+      setUpdateUser((prev) => ({ ...prev, profilePicture: reader.result }));
     };
   };
 
@@ -133,11 +106,7 @@ const ProfilePage = () => {
               <button
                 className="btn w-full btn-primary"
                 onClick={() =>
-                  updateProfile(
-                    updateUser.fullname,
-                    updateUser.email,
-                    updateUser.profilePicture,
-                  )
+                  updateProfile(updateUser.fullname, updateUser.profilePicture)
                 }
                 disabled={isUpdatingProfile}
               >

@@ -1,11 +1,13 @@
 import { create } from "zustand";
 import axiosInstance from "../lib/axios.js";
+import useAuthStore from "./UseAuthStore.js";
 
 export const useChatStore = create((set, get) => ({
   users: [],
   selectedUser: null,
   chatHistory: [],
   unreadMessages: {},
+  isTyping: false,
   isLoadingChatHistory: false,
   isFetchingUsers: false,
   fetchUsers: async () => {
@@ -39,18 +41,35 @@ export const useChatStore = create((set, get) => ({
       set({ chatHistory: [], selectedUser: null });
       return;
     }
+    set({ isTyping: false });
     get().resetUnreadMessages(user._id);
     set({ chatHistory: [], selectedUser: user });
   },
   sendMessage: async (message) => {
-    const { chatHistory, selectedUser } = get();
+    const { selectedUser } = get();
+    const { socket } = useAuthStore.getState();
     try {
       const res = await axiosInstance.post(
         `/message/send/${selectedUser._id}`,
         message,
       );
       const newMessage = res.data;
-      set({ chatHistory: [...chatHistory, newMessage] });
+
+      // Use the functional update (state) => ({ ... })
+      // to ensure Zustand triggers a re-render correctly
+      set((state) => ({
+        chatHistory: [...state.chatHistory, newMessage],
+      }));
+
+      console.log("Latest message added to Store:", newMessage);
+
+      if (!socket) {
+        return;
+      }
+
+      if (socket && socket.connected && selectedUser?._id) {
+        socket.emit("stopTyping", selectedUser._id);
+      }
     } catch (error) {
       console.error("Error in sendMessage: ", error.message);
     }

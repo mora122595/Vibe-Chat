@@ -1,7 +1,7 @@
 import User from "../models/user.model.js";
 import Message from "../models/message.model.js";
 import cloudinary from "../lib/cloudinary.js";
-import { getSocket, io } from "../lib/socket.js";
+import { io, getSocket } from "../lib/socket.js";
 
 export const getUsers = async (req, res) => {
   try {
@@ -52,7 +52,12 @@ export const sendMessage = async (req, res) => {
     }
 
     if (image) {
-      uploadResult = await cloudinary.uploader.upload(image);
+      uploadResult = await cloudinary.uploader.upload(image, {
+        transformation: [
+          { width: 500, height: 500, crop: "fill", quality: 80 },
+        ],
+        format: "webp",
+      });
     }
 
     const newMessage = new Message({

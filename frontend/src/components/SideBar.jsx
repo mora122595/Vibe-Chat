@@ -5,7 +5,7 @@ import useAuthStore from "../stores/UseAuthStore";
 import useFriendsStore from "../stores/UseFriendsStore";
 
 const SideBar = () => {
-  const { users, setSelectedUser, unreadMessages } = useChatStore();
+  const { setSelectedUser, unreadMessages } = useChatStore();
   const { onlineUsers } = useAuthStore();
   const { friends, fetchFriends } = useFriendsStore();
 
