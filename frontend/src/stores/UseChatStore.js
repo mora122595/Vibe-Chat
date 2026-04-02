@@ -54,13 +54,20 @@ export const useChatStore = create((set, get) => ({
     }
   },
   setSelectedUser: (user) => {
+    const { socket } = useAuthStore.getState();
     if (!user) {
       set({ chatHistory: [], selectedUser: null, lastMessageTimestamp: null });
       return;
     }
     set({ isTyping: false });
-    get().resetUnreadMessages(user._id);
     set({ chatHistory: [], selectedUser: user, lastMessageTimestamp: null });
+
+    if (!socket) {
+      return;
+    }
+    if (socket.connected && user?._id) {
+      socket.emit("messageRead", user._id);
+    }
   },
   sendMessage: async (message) => {
     const { selectedUser } = get();

@@ -1,7 +1,7 @@
 import useChatStore from "../stores/UseChatStore";
 import useAuthStore from "../stores/UseAuthStore";
 import { ImagePlus, Send, ArrowLeft, ArrowUpToLine } from "lucide-react";
-import { useState, useEffect, useRef, use } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getAvatar } from "../lib/helpers";
 import ChatMessage from "./ChatMessage";
 
@@ -111,7 +111,7 @@ const ChatWindow = () => {
 
   return (
     <div className="fixed inset-0 flex flex-col lg:static lg:h-full lg:flex lg:flex-col overflow-x-hidden">
-      <div className="flex items-center gap-3 pl-4 py-4  border-base-300 border-shadow-xl bg-base-300 rounded-t-xl">
+      <div className="flex items-center gap-3 pl-4 py-4  border-base-300 border-shadow-xl bg-base-300">
         <button className="md:hidden" onClick={() => setSelectedUser(null)}>
           <ArrowLeft />
         </button>
@@ -129,25 +129,24 @@ const ChatWindow = () => {
       </div>
 
       <div
-        className="flex-1 overflow-y-auto p-4 min-h-0 bg-repeat relative"
+        className="flex-1 overflow-hidden min-h-0 bg-repeat relative"
         style={{
           backgroundImage: bgImage,
-          backgroundSize: "300px",
+          backgroundSize: "500px",
         }}
       >
-        <div className="absolute inset-0 bg-base-100/40"></div>
-
-        <div className="relative h-full p-4 overflow-y-auto">
+        <div className="absolute inset-0 bg-base-100/70 z-0" />
+        <div className="relative z-10 h-full flex flex-col p-4 overflow-y-auto">
           <div className="sticky top-0 flex justify-center z-10">
             <button
-              className="btn btn-sm btn-ghost flex items-center justify-center gap-1 text-primary hover:text-primary hover:bg-base-300 transition-all duration-200"
+              className="btn btn-sm btn-ghost rounded-full flex items-center justify-center gap-1 text-primary bg-base-100/50 hover:bg-base-300 transition-all duration-200"
               onClick={() => {
                 loadingMoreRef.current = true;
                 fetchChatHistory();
               }}
             >
-              <ArrowUpToLine className="size-3 transition-transform duration-200 hover:group-hover:-translate-y-1" />
-              <span className="text-sm">Load more</span>
+              <ArrowUpToLine className="size-3" />
+              <span className="text-sm font-semibold">Load more</span>
             </button>
           </div>
           <div ref={messageStartRef} />
@@ -176,7 +175,7 @@ const ChatWindow = () => {
         </div>
       </div>
 
-      <div className="flex items-center gap-2 p-4 bg-base-300 rounded-b-xl shrink-0">
+      <div className="flex items-center gap-2 p-4 bg-base-300 shrink-0">
         <label className="btn btn-neutral btn-sm btn-square cursor-pointer">
           <ImagePlus className="size-4" />
           <input

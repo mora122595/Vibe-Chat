@@ -12,7 +12,7 @@ const HomePage = () => {
   }, [fetchUsers]);
 
   return (
-    <div className="flex h-full md:p-6 md:gap-6">
+    <div className="flex h-full">
       {/* Left - Sidebar */}
       <div
         className={`flex-[1] overflow-y-auto ${
@@ -30,7 +30,7 @@ const HomePage = () => {
 
       {/* Right - Chat Window */}
       <div
-        className={`flex-[4] md:border-l border-base-300 md:px-4 ${
+        className={`flex-[4] ${
           !selectedUser ? "hidden md:block" : "block w-full"
         }`}
       >

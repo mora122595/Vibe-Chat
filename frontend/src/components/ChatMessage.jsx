@@ -1,5 +1,5 @@
 import { getAvatar, formatTime } from "../lib/helpers";
-
+import { Check, CheckCheck } from "lucide-react";
 const ChatMessage = ({ m, authUser, selectedUser }) => (
   <div
     className={`chat ${m.senderId === authUser._id ? "chat-end" : "chat-start"}`}
@@ -27,8 +27,16 @@ const ChatMessage = ({ m, authUser, selectedUser }) => (
       )}
       {m.text && <p className="break-words">{m.text}</p>}
     </div>
-    <p className="chat-footer font-semibold text-xs">
+    <p className="flex flex-row gap-2 chat-footer font-semibold text-xs text-neutral">
       {formatTime(m.createdAt)}
+      {m.senderId === authUser._id &&
+        (m.status === "sent" ? (
+          <Check className="text-neutral-950 size-4" strokeWidth={2.5} />
+        ) : m.status === "delivered" ? (
+          <CheckCheck className="text-neutral-950 size-4" strokeWidth={2.5} />
+        ) : (
+          <CheckCheck className="text-accent size-4" strokeWidth={2.5} />
+        ))}
     </p>
   </div>
 );

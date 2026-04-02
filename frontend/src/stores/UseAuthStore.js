@@ -134,10 +134,12 @@ export const useAuthStore = create((set, get) => ({
         useChatStore.setState((state) => ({
           chatHistory: [...state.chatHistory, message],
         }));
+        socket.emit("messageRead", message.senderId);
       } else {
+        socket.emit("messageDelivered", message.senderId);
         const sender = users.find((u) => u._id === message.senderId);
         if (sender) toast.success(`New message from ${sender.fullname}`);
-        incrementUnreadMessages(message.senderId); // ← only for non-active chats
+        incrementUnreadMessages(message.senderId);
       }
     });
 
@@ -164,6 +166,30 @@ export const useAuthStore = create((set, get) => ({
         friendRequests: [...friendRequests, request],
       });
       toast.success(`New friend request from ${request.fullname}`);
+    });
+
+    socket.on("messageRead", (receiverId) => {
+      const { selectedUser, resetUnreadMessages } = useChatStore.getState();
+      if (receiverId === selectedUser?._id) {
+        useChatStore.setState((state) => ({
+          chatHistory: state.chatHistory.map((m) =>
+            m.status !== "read" ? { ...m, status: "read" } : m,
+          ),
+        }));
+        resetUnreadMessages(receiverId);
+      }
+    });
+
+    socket.on("messageDelivered", (senderId) => {
+      const { selectedUser } = useChatStore.getState();
+      if (senderId === selectedUser?._id) {
+        // ✅ only update active chat
+        useChatStore.setState((state) => ({
+          chatHistory: state.chatHistory.map((m) =>
+            m.status === "sent" ? { ...m, status: "delivered" } : m,
+          ),
+        }));
+      }
     });
   },
 

@@ -1,6 +1,7 @@
 import { Server } from "socket.io";
 import http from "http";
 import express from "express";
+import Message from "../models/message.model.js";
 
 const app = express();
 
@@ -42,6 +43,36 @@ io.on("connection", (socket) => {
     const receiverSocketId = getSocket(receiverId);
     if (receiverSocketId) {
       io.to(receiverSocketId).emit("typing", userId);
+    }
+  });
+
+  socket.on("messageRead", async (receiverId) => {
+    if (!receiverId) return;
+    const receiverSocketId = getSocket(receiverId);
+    await Message.updateMany(
+      { senderId: receiverId, receiverId: userId, status: { $ne: "read" } },
+      { $set: { status: "read" } },
+    );
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("messageRead", userId);
+    }
+  });
+
+  socket.on("messageDelivered", async (receiverId) => {
+    if (!receiverId) return;
+    const receiverSocketId = getSocket(receiverId);
+
+    await Message.updateMany(
+      {
+        senderId: receiverId,
+        receiverId: userId,
+        status: "sent",
+      },
+      { $set: { status: "delivered" } },
+    );
+
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("messageDelivered", userId);
     }
   });
 
