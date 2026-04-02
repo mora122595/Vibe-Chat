@@ -41,9 +41,13 @@ export const useChatStore = create((set, get) => ({
       );
 
       if (isFirstLoad) {
-        set({ chatHistory: res.data.messages }); // ✅ replace, don't append
+        set({ chatHistory: res.data.messages });
       } else {
-        set({ chatHistory: [...res.data.messages, ...get().chatHistory] }); // ✅ append older messages
+        set((state) => {
+          return {
+            chatHistory: [...state.chatHistory, ...res.data.messages],
+          };
+        });
       }
 
       set({ lastMessageTimestamp: res.data.nextCursor });

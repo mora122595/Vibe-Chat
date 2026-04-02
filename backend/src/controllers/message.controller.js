@@ -43,10 +43,10 @@ export const getConversation = async (req, res) => {
     const nextCursor =
       messages.length > 0 ? messages[messages.length - 1].createdAt : null;
 
-    console.log("current messages: ", messages);
-    console.log("next cursor: ", nextCursor);
-
-    return res.status(200).json({ messages, nextCursor });
+    return res.status(200).json({
+      messages: messages.reverse(),
+      nextCursor,
+    });
   } catch (error) {
     console.log("Error in getConversation: ", error.message);
     return res.status(500).json({ error: "Server error" });
