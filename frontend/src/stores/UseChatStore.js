@@ -10,6 +10,7 @@ export const useChatStore = create((set, get) => ({
   isTyping: false,
   isLoadingChatHistory: false,
   isFetchingUsers: false,
+  lastMessageTimestamp: null,
   fetchUsers: async () => {
     set({ isFetchingUsers: true });
     try {
@@ -22,14 +23,30 @@ export const useChatStore = create((set, get) => ({
       set({ isFetchingUsers: false });
     }
   },
+
   fetchChatHistory: async () => {
+    if (get().isLoadingChatHistory) return;
+    console.log("fetchChatHistory called!", {
+      lastMessageTimestamp: get().lastMessageTimestamp,
+      chatHistoryLength: get().chatHistory.length,
+    });
     set({ isLoadingChatHistory: true });
     const { selectedUser } = get();
+    const isFirstLoad = get().lastMessageTimestamp === null; // ✅
+
     try {
       const res = await axiosInstance.get(
         `message/conversation/${selectedUser._id}`,
+        { params: { lastMessageTimestamp: get().lastMessageTimestamp } },
       );
-      set({ chatHistory: res.data });
+
+      if (isFirstLoad) {
+        set({ chatHistory: res.data.messages }); // ✅ replace, don't append
+      } else {
+        set({ chatHistory: [...res.data.messages, ...get().chatHistory] }); // ✅ append older messages
+      }
+
+      set({ lastMessageTimestamp: res.data.nextCursor });
     } catch (error) {
       console.error("Error in fetchChatHistory: ", error.message);
     } finally {
@@ -38,12 +55,12 @@ export const useChatStore = create((set, get) => ({
   },
   setSelectedUser: (user) => {
     if (!user) {
-      set({ chatHistory: [], selectedUser: null });
+      set({ chatHistory: [], selectedUser: null, lastMessageTimestamp: null });
       return;
     }
     set({ isTyping: false });
     get().resetUnreadMessages(user._id);
-    set({ chatHistory: [], selectedUser: user });
+    set({ chatHistory: [], selectedUser: user, lastMessageTimestamp: null });
   },
   sendMessage: async (message) => {
     const { selectedUser } = get();

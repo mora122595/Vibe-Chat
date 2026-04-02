@@ -128,6 +128,8 @@ export const useAuthStore = create((set, get) => ({
         message.senderId === selectedUser?._id ||
         message.receiverId === selectedUser?._id;
 
+      if (message.senderId === get().authUser._id) return;
+
       if (isMessageForSelectedChat) {
         useChatStore.setState((state) => ({
           chatHistory: [...state.chatHistory, message],

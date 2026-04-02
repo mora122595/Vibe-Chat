@@ -2,6 +2,7 @@ import User from "../models/user.model.js";
 import Message from "../models/message.model.js";
 import cloudinary from "../lib/cloudinary.js";
 import { io, getSocket } from "../lib/socket.js";
+import mongoose from "mongoose";
 
 export const getUsers = async (req, res) => {
   try {
@@ -18,16 +19,34 @@ export const getUsers = async (req, res) => {
 
 export const getConversation = async (req, res) => {
   try {
-    const loggedInUserId = req.user._id;
-    const otherUserId = req.params.id;
+    const loggedInUserId = new mongoose.Types.ObjectId(req.user._id);
+    const otherUserId = new mongoose.Types.ObjectId(req.params.id);
+    let { lastMessageTimestamp } = req.query;
 
-    const messages = await Message.find({
+    const query = {
       $or: [
         { senderId: loggedInUserId, receiverId: otherUserId },
         { senderId: otherUserId, receiverId: loggedInUserId },
       ],
-    }).sort({ createdAt: 1 });
-    return res.status(200).json(messages);
+    };
+
+    if (lastMessageTimestamp) {
+      query.createdAt = { $lt: new Date(lastMessageTimestamp) };
+    }
+
+    const messages = await Message.aggregate([
+      { $match: query },
+      { $sort: { createdAt: -1 } },
+      { $limit: 10 },
+    ]);
+
+    const nextCursor =
+      messages.length > 0 ? messages[messages.length - 1].createdAt : null;
+
+    console.log("current messages: ", messages);
+    console.log("next cursor: ", nextCursor);
+
+    return res.status(200).json({ messages, nextCursor });
   } catch (error) {
     console.log("Error in getConversation: ", error.message);
     return res.status(500).json({ error: "Server error" });
