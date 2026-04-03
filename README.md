@@ -1,4 +1,3 @@
-[README.md](https://github.com/user-attachments/files/26473630/README.md)
 # VibeChat 💬
 
 A real-time full-stack chat application with friend management, live notifications, and message delivery tracking.
@@ -190,6 +189,28 @@ The app will be available at `http://localhost:5173`
 | `stopTyping` | Bidirectional | User stopped typing |
 | `newRequest` | Server → Client | New friend request received |
 | `onlineUsers` | Server → Client | Online users list updated |
+
+## Roadmap
+
+- [x] JWT authentication with secure httpOnly cookies
+- [x] Real-time messaging with Socket.io
+- [x] Message delivery status (sent → delivered → read)
+- [x] Persistent unread notifications across sessions
+- [x] Friend system (send, accept, decline, remove)
+- [x] Image sharing with Cloudinary
+- [x] Typing indicators
+- [x] Online/offline presence
+- [x] Paginated chat history with infinite scroll
+- [x] Multiple themes
+- [x] Error tracking with Sentry
+- [ ] Input sanitization and message validation
+- [ ] Paginate users list
+- [ ] Backend error tracking with @sentry/node
+- [ ] Unit and integration tests
+- [ ] Group chats
+- [ ] Voice messages
+- [ ] Message reactions
+- [ ] Edit and delete messages
 
 ## Deployment
 
