@@ -110,6 +110,19 @@ export const useChatStore = create((set, get) => ({
   resetUnreadMessages: (receiverId) => {
     set({ unreadMessages: { ...get().unreadMessages, [receiverId]: 0 } });
   },
+
+  fetchUnreadCounts: async () => {
+    try {
+      const res = await axiosInstance.get("/message/unread");
+      const unreadMap = res.data.reduce((acc, { friendId, unreadCount }) => {
+        acc[friendId] = unreadCount;
+        return acc;
+      }, {});
+      set({ unreadMessages: unreadMap });
+    } catch (error) {
+      console.error("Error in fetchUnreadCounts: ", error.message);
+    }
+  },
 }));
 
 export default useChatStore;

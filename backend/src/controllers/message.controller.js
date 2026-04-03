@@ -99,3 +99,36 @@ export const sendMessage = async (req, res) => {
     return res.status(500).json({ error: "Server error" });
   }
 };
+
+export const getUnreadCounts = async (req, res) => {
+  try {
+    const loggedInUserId = req.user._id;
+
+    const notifications = await Message.aggregate([
+      {
+        $match: {
+          receiverId: loggedInUserId,
+          status: { $ne: "read" }, // not read
+        },
+      },
+      {
+        $group: {
+          _id: "$senderId",
+          unreadCount: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          friendId: "$_id",
+          unreadCount: 1,
+        },
+      },
+    ]);
+
+    return res.status(200).json(notifications);
+  } catch (error) {
+    console.log("Error in getUnreadMessages: ", error.message);
+    return res.status(500).json({ error: "Server error" });
+  }
+};

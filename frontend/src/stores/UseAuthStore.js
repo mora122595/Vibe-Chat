@@ -155,7 +155,6 @@ export const useAuthStore = create((set, get) => ({
       const { selectedUser } = useChatStore.getState();
       console.log("   Current selectedUser:", selectedUser?._id);
       if (userId === selectedUser?._id) {
-        console.log("   ✅ Setting isTyping = false");
         useChatStore.setState({ isTyping: false });
       }
     });
@@ -183,7 +182,6 @@ export const useAuthStore = create((set, get) => ({
     socket.on("messageDelivered", (senderId) => {
       const { selectedUser } = useChatStore.getState();
       if (senderId === selectedUser?._id) {
-        // ✅ only update active chat
         useChatStore.setState((state) => ({
           chatHistory: state.chatHistory.map((m) =>
             m.status === "sent" ? { ...m, status: "delivered" } : m,

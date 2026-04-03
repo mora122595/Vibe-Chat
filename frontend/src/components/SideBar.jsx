@@ -14,7 +14,7 @@ const SideBar = () => {
   }, [fetchFriends]);
 
   return (
-    <div className="flex flex-col w-full ">
+    <div className="flex flex-col w-full h-full border-r border-base-300 ">
       <div className=" px-2 pt-4">
         <p className=" flex items-center gap-2 text-2xl font-bold px-2 ">
           <UsersRound />

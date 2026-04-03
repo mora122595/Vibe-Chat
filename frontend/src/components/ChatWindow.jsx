@@ -112,7 +112,7 @@ const ChatWindow = () => {
   return (
     <div className="fixed inset-0 flex flex-col lg:static lg:h-full lg:flex lg:flex-col overflow-x-hidden">
       <div className="flex items-center gap-3 pl-4 py-4  border-base-300 border-shadow-xl bg-base-300">
-        <button className="md:hidden" onClick={() => setSelectedUser(null)}>
+        <button className="xl:hidden" onClick={() => setSelectedUser(null)}>
           <ArrowLeft />
         </button>
         <img
@@ -166,7 +166,7 @@ const ChatWindow = () => {
                   <img alt="avatar" src={getAvatar(selectedUser)} />
                 </div>
               </div>
-              <div className="chat-bubble bg-base-300">
+              <div className="chat-bubble">
                 <span className="loading loading-dots loading-sm"></span>
               </div>
             </div>

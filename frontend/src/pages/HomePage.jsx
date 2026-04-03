@@ -5,11 +5,16 @@ import SideBar from "../components/SideBar";
 import ChatWindow from "../components/ChatWindow";
 
 const HomePage = () => {
-  const { fetchUsers, isFetchingUsers, selectedUser } = useChatStore();
+  const { fetchUsers, isFetchingUsers, selectedUser, fetchUnreadCounts } =
+    useChatStore();
 
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
+
+  useEffect(() => {
+    fetchUnreadCounts();
+  }, []);
 
   return (
     <div className="flex h-full">
