@@ -12,8 +12,7 @@ export const getUsers = async (req, res) => {
     );
     return res.status(200).json(users);
   } catch (error) {
-    console.log("Error in getUsers: ", error.message);
-    return res.status(500).json({ error: "Eror Fetching Users" });
+    return res.status(500).json({ error: "Error fetching all users" });
   }
 };
 
@@ -48,8 +47,7 @@ export const getConversation = async (req, res) => {
       nextCursor,
     });
   } catch (error) {
-    console.log("Error in getConversation: ", error.message);
-    return res.status(500).json({ error: "Server error" });
+    return res.status(500).json({ error: "Error fetching chat history" });
   }
 };
 
@@ -95,8 +93,7 @@ export const sendMessage = async (req, res) => {
 
     return res.status(201).json(savedMessage);
   } catch (error) {
-    console.log("Error in sendMessage: ", error.message);
-    return res.status(500).json({ error: "Server error" });
+    return res.status(500).json({ error: "Could not send message" });
   }
 };
 
@@ -128,7 +125,6 @@ export const getUnreadCounts = async (req, res) => {
 
     return res.status(200).json(notifications);
   } catch (error) {
-    console.log("Error in getUnreadMessages: ", error.message);
-    return res.status(500).json({ error: "Server error" });
+    return res.status(500).json({ error: "Could not get unread counts" });
   }
 };

@@ -3,6 +3,7 @@ import useChatStore from "../stores/UseChatStore";
 import { useEffect } from "react";
 import SideBar from "../components/SideBar";
 import ChatWindow from "../components/ChatWindow";
+import ErrorBoundary from "../components/ErrorBoundary";
 
 const HomePage = () => {
   const { fetchUsers, isFetchingUsers, selectedUser, fetchUnreadCounts } =
@@ -10,7 +11,7 @@ const HomePage = () => {
 
   useEffect(() => {
     fetchUsers();
-  }, [fetchUsers]);
+  }, []);
 
   useEffect(() => {
     fetchUnreadCounts();
@@ -18,7 +19,6 @@ const HomePage = () => {
 
   return (
     <div className="flex h-full">
-      {/* Left - Sidebar */}
       <div
         className={`flex-[1] overflow-y-auto ${
           selectedUser ? "hidden md:block" : "block w-full"
@@ -29,7 +29,9 @@ const HomePage = () => {
             <span className="loading loading-spinner loading-md text-primary" />
           </div>
         ) : (
-          <SideBar />
+          <ErrorBoundary>
+            <SideBar />
+          </ErrorBoundary>
         )}
       </div>
 
@@ -51,7 +53,11 @@ const HomePage = () => {
             </p>
           </div>
         )}
-        {selectedUser && <ChatWindow />}
+        {selectedUser && (
+          <ErrorBoundary>
+            <ChatWindow />
+          </ErrorBoundary>
+        )}
       </div>
     </div>
   );

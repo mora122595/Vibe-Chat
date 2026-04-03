@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import axiosInstance from "../lib/axios.js";
 import useAuthStore from "./UseAuthStore.js";
+import * as Sentry from "@sentry/react";
 
 export const useChatStore = create((set, get) => ({
   users: [],
@@ -11,6 +12,7 @@ export const useChatStore = create((set, get) => ({
   isLoadingChatHistory: false,
   isFetchingUsers: false,
   lastMessageTimestamp: null,
+
   fetchUsers: async () => {
     set({ isFetchingUsers: true });
     try {
@@ -18,22 +20,16 @@ export const useChatStore = create((set, get) => ({
       const data = res.data;
       set({ users: data });
     } catch (error) {
-      console.error("Error in fetchUsers: ", error.message);
+      Sentry.captureException(error);
     } finally {
       set({ isFetchingUsers: false });
     }
   },
-
   fetchChatHistory: async () => {
     if (get().isLoadingChatHistory) return;
-    console.log("fetchChatHistory called!", {
-      lastMessageTimestamp: get().lastMessageTimestamp,
-      chatHistoryLength: get().chatHistory.length,
-    });
     set({ isLoadingChatHistory: true });
     const { selectedUser } = get();
     const isFirstLoad = get().lastMessageTimestamp === null; // ✅
-
     try {
       const res = await axiosInstance.get(
         `message/conversation/${selectedUser._id}`,
@@ -48,7 +44,7 @@ export const useChatStore = create((set, get) => ({
 
       set({ lastMessageTimestamp: res.data.nextCursor });
     } catch (error) {
-      console.error("Error in fetchChatHistory: ", error.message);
+      Sentry.captureException(error);
     } finally {
       set({ isLoadingChatHistory: false });
     }
@@ -56,7 +52,11 @@ export const useChatStore = create((set, get) => ({
   setSelectedUser: (user) => {
     const { socket } = useAuthStore.getState();
     if (!user) {
-      set({ chatHistory: [], selectedUser: null, lastMessageTimestamp: null });
+      set({
+        chatHistory: [],
+        selectedUser: null,
+        lastMessageTimestamp: null,
+      });
       return;
     }
     set({ isTyping: false });
@@ -80,13 +80,9 @@ export const useChatStore = create((set, get) => ({
       );
       const newMessage = res.data;
 
-      // Use the functional update (state) => ({ ... })
-      // to ensure Zustand triggers a re-render correctly
       set((state) => ({
         chatHistory: [...state.chatHistory, newMessage],
       }));
-
-      console.log("Latest message added to Store:", newMessage);
 
       if (!socket) {
         return;
@@ -96,7 +92,7 @@ export const useChatStore = create((set, get) => ({
         socket.emit("stopTyping", selectedUser._id);
       }
     } catch (error) {
-      console.error("Error in sendMessage: ", error.message);
+      Sentry.captureException(error);
     }
   },
   incrementUnreadMessages: (receiverId) => {
@@ -121,7 +117,7 @@ export const useChatStore = create((set, get) => ({
       }, {});
       set({ unreadMessages: unreadMap });
     } catch (error) {
-      console.error("Error in fetchUnreadCounts: ", error.message);
+      Sentry.captureException(error);
     }
   },
 }));

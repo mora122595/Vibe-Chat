@@ -1,7 +1,7 @@
 import axiosInstance from "../lib/axios.js";
 import { create } from "zustand";
 import { toast } from "react-hot-toast";
-import { Socket } from "socket.io-client";
+import * as Sentry from "@sentry/react";
 
 export const useFriendsStore = create((set, get) => ({
   friends: [],
@@ -17,10 +17,7 @@ export const useFriendsStore = create((set, get) => ({
       const res = await axiosInstance.get("/friends/list");
       set({ friends: res.data.friends });
     } catch (error) {
-      console.error(
-        "Error in fetchFriends:",
-        error.response?.data || error.message,
-      );
+      Sentry.captureException(error);
     } finally {
       set({ isFetchingFriends: false });
     }
@@ -31,10 +28,7 @@ export const useFriendsStore = create((set, get) => ({
       const res = await axiosInstance.get("/friends/requests");
       set({ friendRequests: res.data.friendRequests });
     } catch (error) {
-      console.error(
-        "Error in fetchRequests",
-        error.response?.data || error.message,
-      );
+      Sentry.captureException(error);
     } finally {
       set({ isFetchingRequests: false });
     }
@@ -46,10 +40,7 @@ export const useFriendsStore = create((set, get) => ({
       const res = await axiosInstance.get("/friends/pending-requests");
       set({ pendingRequests: res.data.pendingRequests });
     } catch (error) {
-      console.error(
-        "Error in fetchPendingRequests",
-        error.response?.data || error.message,
-      );
+      Sentry.captureException(error);
     } finally {
       set({ isFetchingRequests: false });
     }
@@ -62,10 +53,7 @@ export const useFriendsStore = create((set, get) => ({
       get().fetchPendingRequests();
       toast.success(res.data.message);
     } catch (error) {
-      console.error(
-        "Error in sendRequest",
-        error.response?.data || error.message,
-      );
+      Sentry.captureException(error);
       toast.error("could not send friend Request");
     } finally {
       set({ isSendingRequest: false });
@@ -79,10 +67,7 @@ export const useFriendsStore = create((set, get) => ({
       await get().fetchRequests();
       toast.success(res.data.message);
     } catch (error) {
-      console.error(
-        "Error in acceptRequest",
-        error.response?.data || error.message,
-      );
+      Sentry.captureException(error);
     }
   },
 
@@ -93,10 +78,7 @@ export const useFriendsStore = create((set, get) => ({
       toast.success("Friend request declined");
     } catch (error) {
       toast.error(error.response?.data?.error || "Could not decline request");
-      console.error(
-        "Error in declineRequest",
-        error.response?.data || error.message,
-      );
+      Sentry.captureException(error);
     }
   },
 
@@ -106,10 +88,7 @@ export const useFriendsStore = create((set, get) => ({
       set({ friends: get().friends.filter((f) => f._id !== userId) });
       toast.success("user removed from friend list");
     } catch (error) {
-      console.error(
-        "Error in removeFriend",
-        error.response?.data || error.message,
-      );
+      Sentry.captureException(error);
     }
   },
 
@@ -123,10 +102,7 @@ export const useFriendsStore = create((set, get) => ({
       });
       toast.success("Friend request removed successfully");
     } catch (error) {
-      console.error(
-        "Error in removeRequest",
-        error.response?.data || error.message,
-      );
+      Sentry.captureException(error);
     }
   },
 }));

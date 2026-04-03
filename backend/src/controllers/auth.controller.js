@@ -16,7 +16,7 @@ export const signup = async (req, res) => {
     }
     const emailExists = await User.findOne({ email });
     if (emailExists) {
-      return res.status(400).json({ error: "Email already exists" });
+      return res.status(409).json({ error: "Email already exists" });
     }
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
@@ -44,8 +44,7 @@ export const signup = async (req, res) => {
       return res.status(400).json({ error: "Invalid user data" });
     }
   } catch (error) {
-    console.log("Error in signup: ", error.message);
-    return res.status(500).json({ error: "Server error" });
+    return res.status(500).json({ error: "Error creating user" });
   }
 };
 
@@ -61,7 +60,7 @@ export const login = async (req, res) => {
       ? await bcrypt.compare(password, user.password)
       : false;
     if (!user || !passwordMatch) {
-      return res.status(400).json({ error: "Invalid email or password" });
+      return res.status(401).json({ error: "Invalid email or password" });
     }
     generateToken(user._id, res);
     return res.status(200).json({
@@ -74,8 +73,7 @@ export const login = async (req, res) => {
       },
     });
   } catch (error) {
-    console.log("Error in login: ", error.message);
-    return res.status(500).json({ error: "Server error" });
+    return res.status(500).json({ error: "Error logging in" });
   }
 };
 
@@ -84,8 +82,7 @@ export const logout = (req, res) => {
     res.clearCookie("jwt");
     return res.status(200).json({ message: "User logged out successfully" });
   } catch (error) {
-    console.log("Error in logout: ", error.message);
-    return res.status(500).json({ error: "Server error" });
+    return res.status(500).json({ error: "Error logging out" });
   }
 };
 
@@ -132,8 +129,7 @@ export const updateProfile = async (req, res) => {
       },
     });
   } catch (error) {
-    console.log("Error in updateProfile: ", error.message);
-    return res.status(500).json({ error: "Server error" });
+    return res.status(500).json({ error: "Error updating profile" });
   }
 };
 
@@ -142,7 +138,6 @@ export const checkAuth = (req, res) => {
     const user = req.user;
     return res.status(200).json(user);
   } catch (error) {
-    console.log("Error in checkAuth: ", error.message);
-    return res.status(500).json({ error: "Server error" });
+    return res.status(500).json({ error: "Could not verify user" });
   }
 };

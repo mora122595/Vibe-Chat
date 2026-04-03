@@ -4,6 +4,7 @@ import { toast } from "react-hot-toast";
 import { io } from "socket.io-client";
 import useChatStore from "./UseChatStore.js";
 import useFriendsStore from "./UseFriendsStore.js";
+import * as Sentry from "@sentry/react";
 
 const BASE_URL =
   import.meta.env.MODE === "development" ? "http://localhost:5001" : "/";
@@ -29,7 +30,7 @@ export const useAuthStore = create((set, get) => ({
       get().connectSocket();
     } catch (error) {
       set({ authUser: null });
-      console.log("Error in checkAuth: ", error.message);
+      Sentry.captureException(error);
     } finally {
       set({ isCheckingAuth: false });
     }
@@ -49,7 +50,7 @@ export const useAuthStore = create((set, get) => ({
       get().connectSocket();
     } catch (error) {
       toast.error(error.response?.data?.error || "Signup failed");
-      console.log("Error in SignUp: ", error.message);
+      Sentry.captureException(error);
     } finally {
       set({ isSigningUp: false });
     }
@@ -65,7 +66,7 @@ export const useAuthStore = create((set, get) => ({
       get().connectSocket();
     } catch (error) {
       toast.error(error.response?.data?.error || "Login failed");
-      console.log("Error in Login: ", error.message);
+      Sentry.captureException(error);
     } finally {
       set({ isLoginIn: false });
     }
@@ -82,7 +83,7 @@ export const useAuthStore = create((set, get) => ({
       get().disconnectSocket();
     } catch (error) {
       toast.error(error.response?.data?.error || "Logout failed");
-      console.log("Error in Logout: ", error.message);
+      Sentry.captureException(error);
     } finally {
       set({ isLoginOut: false });
     }
@@ -100,7 +101,7 @@ export const useAuthStore = create((set, get) => ({
       toast.success(res.data.message);
     } catch (error) {
       toast.error(error.response?.data?.error || "Update profile failed");
-      console.log("Error in Update Profile: ", error.message);
+      Sentry.captureException(error);
     } finally {
       set({ isUpdatingProfile: false });
     }
@@ -145,7 +146,6 @@ export const useAuthStore = create((set, get) => ({
 
     socket.on("typing", (userId) => {
       const { selectedUser } = useChatStore.getState();
-      console.log("   Current selectedUser:", selectedUser?._id);
       if (userId === selectedUser?._id) {
         useChatStore.setState({ isTyping: true });
       }
@@ -153,7 +153,6 @@ export const useAuthStore = create((set, get) => ({
 
     socket.on("stopTyping", (userId) => {
       const { selectedUser } = useChatStore.getState();
-      console.log("   Current selectedUser:", selectedUser?._id);
       if (userId === selectedUser?._id) {
         useChatStore.setState({ isTyping: false });
       }

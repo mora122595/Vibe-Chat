@@ -4,6 +4,9 @@ import { ImagePlus, Send, ArrowLeft, ArrowUpToLine } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { getAvatar } from "../lib/helpers";
 import ChatMessage from "./ChatMessage";
+import ErrorBoundary from "./ErrorBoundary";
+import { toast } from "react-hot-toast";
+import * as Sentry from "@sentry/react";
 
 const ChatWindow = () => {
   const { onlineUsers, socket, authUser } = useAuthStore();
@@ -70,7 +73,8 @@ const ChatWindow = () => {
         });
         setMessage({ text: "", image: "" });
       } catch (error) {
-        console.error("Image send failed:", error);
+        toast.error("Could not send image");
+        Sentry.captureException(error);
       } finally {
         e.target.value = null;
         setSendingMessage(false);
@@ -151,13 +155,13 @@ const ChatWindow = () => {
           </div>
           <div ref={messageStartRef} />
           {chatHistory.map((m) => (
-            <div key={m._id}>
+            <ErrorBoundary key={m._id}>
               <ChatMessage
                 m={m}
                 authUser={authUser}
                 selectedUser={selectedUser}
               />
-            </div>
+            </ErrorBoundary>
           ))}
           {isTyping && (
             <div className="chat chat-start">

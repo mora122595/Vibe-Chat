@@ -9,7 +9,6 @@ export const getFriends = async (req, res) => {
     );
     return res.status(200).json({ friends: user.friends });
   } catch (error) {
-    console.log("Error in getFriends: ", error.message);
     return res.status(500).json({ error: "Error fetching friends" });
   }
 };
@@ -22,7 +21,6 @@ export const getFriendRequests = async (req, res) => {
     );
     return res.status(200).json({ friendRequests: user.friendRequests });
   } catch (error) {
-    console.log("Error in getFriendRequests ", error.message);
     return res.status(500).json({ error: "Error fetching friend requests" });
   }
 };
@@ -35,7 +33,6 @@ export const getPendingRequests = async (req, res) => {
     );
     return res.status(200).json({ pendingRequests: user.pendingRequests });
   } catch (error) {
-    console.log("Error in getPendingRequests: ", error.message);
     return res.status(500).json({ error: "Error fetching pending requests" });
   }
 };
@@ -89,10 +86,9 @@ export const sendFriendRequest = async (req, res) => {
     }
 
     return res
-      .status(200)
+      .status(201)
       .json({ message: "Friend request sent successfully" });
   } catch (error) {
-    console.log("Error in sendFriendRequest: ", error.message);
     return res.status(500).json({ error: "Error sending friend request" });
   }
 };
@@ -102,7 +98,7 @@ export const acceptFriendRequest = async (req, res) => {
   const receiverId = req.user._id;
   try {
     if (!req.user.friendRequests.some((id) => id.equals(senderId))) {
-      return res.status(404).json({ error: "No friend request from user" });
+      return res.status(400).json({ error: "No friend request from user" });
     }
     await User.findByIdAndUpdate(
       receiverId,
@@ -129,7 +125,6 @@ export const acceptFriendRequest = async (req, res) => {
       .status(200)
       .json({ message: "friend added succesfully!", friendId: senderId });
   } catch (error) {
-    console.log("Error in acceptingRequest", error.message);
     return res.status(500).json({ error: "Error accepting request" });
   }
 };
@@ -139,7 +134,7 @@ export const declineFriendRequest = async (req, res) => {
   const receiverId = req.user._id;
   try {
     if (!req.user.friendRequests.some((id) => id.equals(senderId))) {
-      return res.status(404).json({ error: "No friend request from user" });
+      return res.status(400).json({ error: "No friend request from user" });
     }
     await User.findByIdAndUpdate(
       receiverId,
@@ -156,7 +151,6 @@ export const declineFriendRequest = async (req, res) => {
       .status(200)
       .json({ message: "Friend request declined successfully" });
   } catch (error) {
-    console.log("Error in declineFriendRequest: ", error.message);
     return res.status(500).json({ error: "Error declining request" });
   }
 };
@@ -181,7 +175,6 @@ export const removeFriend = async (req, res) => {
 
     return res.status(200).json({ message: "Friend removed successfully" });
   } catch (error) {
-    console.log("Error in removeFriend", error.message);
     return res.status(500).json({ error: "Error removing friend from list" });
   }
 };
@@ -207,7 +200,6 @@ export const removeRequest = async (req, res) => {
       .status(200)
       .json({ message: "Friend request removed successfully" });
   } catch (error) {
-    console.log("Error in removeFriend", error.message);
     return res.status(500).json({ error: "Error removing friend from list" });
   }
 };
