@@ -61,6 +61,7 @@ export const useChatStore = create((set, get) => ({
     }
     set({ isTyping: false });
     set({ chatHistory: [], selectedUser: user, lastMessageTimestamp: null });
+    get().resetUnreadMessages(user._id);
 
     if (!socket) {
       return;
